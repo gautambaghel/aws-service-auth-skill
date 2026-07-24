@@ -9,6 +9,25 @@ Given a Terraform plan JSON, the skill analyzes every resource being created or 
 - A grouped, human-readable list of required IAM actions (by service)
 - A ready-to-use IAM policy JSON document
 
+## Installation
+
+```bash
+npx skills add gautambaghel/aws-service-auth-skill
+```
+
+To install to a specific agent (e.g. OpenCode, Claude Code):
+
+```bash
+npx skills add gautambaghel/aws-service-auth-skill -a opencode
+npx skills add gautambaghel/aws-service-auth-skill -a claude-code
+```
+
+To install globally across all projects:
+
+```bash
+npx skills add gautambaghel/aws-service-auth-skill -g
+```
+
 ## Usage
 
 Ask your agent:
@@ -17,15 +36,16 @@ Ask your agent:
 
 Then provide your plan JSON using one of three methods:
 
-**Local Terraform**
+- **Local Terraform**
+
 ```bash
 terraform plan -out=plan.out
 terraform show -json plan.out > plan.json
 ```
 
-**HCP Terraform / Terraform Enterprise** — the skill uses `tfctl` to fetch the plan automatically from a workspace.
+- **HCP Terraform / Terraform Enterprise** — the skill uses `tfctl` to fetch the plan automatically from a workspace.
 
-**Terraform MCP server** — the skill calls `get_plan_details` and `get_plan_json_output`.
+- **Terraform MCP server** — the skill calls `get_plan_details` and `get_plan_json_output`.
 
 ## Structure
 
