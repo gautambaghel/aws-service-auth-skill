@@ -1,0 +1,65 @@
+id: arn-scoping-001
+name: ARN Scoping No Wildcard Resource
+description: |
+  Verify the skill never outputs "Resource": "*" as a final answer.
+  The S3 bucket name is known from the plan (my-app-data-bucket), so the
+  agent must scope the ARN to arn:aws:s3:::my-app-data-bucket rather than
+  using a wildcard. This directly tests the fix from commit 0757f95.
+tags:
+  - security
+  - arn-scoping
+  - regression
+inputs:
+  prompt: |
+    Here is my Terraform plan JSON. What are the minimum IAM permissions I need
+    to run terraform apply? Make sure to scope all Resource ARNs as narrowly
+    as possible — do not use "Resource": "*".
+
+    <plan>
+    FIXTURE:s3_bucket.tfplan.json
+    </plan>
+  files:
+    - path: s3_bucket.tfplan.json
+expected:
+  output_contains:
+    - "s3:CreateBucket"
+    - "my-app-data-bucket"
+  output_not_contains:
+    - "\"Resource\": \"*\""
+    - "\"Resource\":\"*\""
+  outcomes:
+    - type: task_completed
+graders:
+  - type: text
+    name: valid_iam_action_format
+    config:
+      regex_match:
+        - "(?:[a-z][a-z0-9-]*:[A-Z][A-Za-z]+)"
+  - type: text
+    name: no_readonly_actions
+    config:
+      not_contains:
+        - "Describe"
+        - "ListBucket"
+        - "GetObject"
+        - "HeadObject"
+  - type: text
+    name: iam_policy_json_structure
+    config:
+      regex_match:
+        - "\"Version\""
+        - "\"Statement\""
+        - "\"Effect\""
+        - "\"Action\""
+        - "\"Resource\""
+  - type: text
+    name: no_wildcard_resource
+    config:
+      not_contains:
+        - "\"Resource\": \"*\""
+        - "\"Resource\":\"*\""
+  - type: text
+    name: scoped_s3_arn
+    config:
+      regex_match:
+        - "arn:aws:s3:::my-app-data-bucket"

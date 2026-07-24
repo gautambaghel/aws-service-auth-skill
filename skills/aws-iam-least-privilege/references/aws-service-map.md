@@ -1,3 +1,31 @@
+# ARN Scoping Rules (Step 6)
+
+Never use `"Resource": "*"` as a final answer. Scope to the narrowest ARN pattern:
+
+- Use known values from the plan (bucket names, role names, AMI IDs, etc.)
+- For IDs unknown at plan time, use a wildcard suffix:
+  `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*`
+- Replace `REGION` / `ACCOUNT_ID` with actual values when known from the plan
+  (region from provider config, account from existing ARNs in `prior_state`)
+- Remind the user to replace `<account-id>` placeholders before use
+
+Common patterns:
+
+| Service | ARN pattern |
+|---|---|
+| S3 bucket | `arn:aws:s3:::BUCKET_NAME` |
+| S3 objects | `arn:aws:s3:::BUCKET_NAME/*` |
+| IAM role | `arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME` |
+| Lambda | `arn:aws:lambda:REGION:ACCOUNT_ID:function:FUNCTION_NAME` |
+| DynamoDB | `arn:aws:dynamodb:REGION:ACCOUNT_ID:table/TABLE_NAME` |
+| SQS | `arn:aws:sqs:REGION:ACCOUNT_ID:QUEUE_NAME` |
+| EC2 instance | `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*` |
+| EC2 VPC | `arn:aws:ec2:REGION:ACCOUNT_ID:vpc/*` |
+| EC2 security group | `arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*` |
+| Log group | `arn:aws:logs:REGION:ACCOUNT_ID:log-group:LOG_GROUP_NAME:*` |
+
+---
+
 # Plan Acquisition (Step 1)
 
 ## Path A — Local Terraform

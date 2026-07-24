@@ -37,5 +37,11 @@ graders:
         - "\"Effect\""
         - "\"Action\""
         - "\"Resource\""
+  - type: text
+    name: no_wildcard_resource
+    config:
+      not_contains:
+        - "\"Resource\": \"*\""
+        - "\"Resource\":\"*\""
 tasks:
   - "tasks/*.yaml"

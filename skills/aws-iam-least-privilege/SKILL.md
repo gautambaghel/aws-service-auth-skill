@@ -24,12 +24,9 @@ Do not proceed without the plan JSON.
 
 ## Step 2 — Extract resource types
 
-From `resource_changes[]`, collect unique `type` where `change.actions`
-contains `"create"` or `"update"`. Skip `"delete"`, `"no-op"`.
-
-**IMPORTANT**: Always use `resource_changes[]` as the authoritative list — never
-rely on `planned_values` which may omit resources. List every distinct `address`
-before proceeding to ensure nothing is missed.
+From `resource_changes[]` (authoritative — never use `planned_values`), collect
+unique `type` where `change.actions` contains `"create"` or `"update"`.
+Skip `"delete"`, `"no-op"`. List every distinct `address` before proceeding.
 
 ## Step 3 — Map to AWS services
 
@@ -37,9 +34,8 @@ Use the mapping table in the reference file. Unlisted: derive from `aws_{service
 
 ## Step 4 — Get actions
 
-First check the "Pre-computed Common Actions" table in the reference file.
-If all resource types are covered there, use those actions directly — skip the
-fetch. Only fetch the service reference JSON for resource types NOT in that table.
+Check "Pre-computed Common Actions" in the reference file first; use those
+directly if covered, else fetch service reference JSON for unlisted types.
 
 ## Step 5 — Select minimum permissions
 
@@ -51,21 +47,8 @@ Apply always-include rules from reference file.
 
 ## Step 6 — Output
 
-Always produce **both**:
+Produce **both**:
 
-1. A human-readable table grouped by resource address showing which IAM actions apply to each resource
-2. A consolidated IAM policy JSON with scoped ARNs
-
-**Resource ARN scoping (REQUIRED)**: Never use `"Resource": "*"` as a final
-answer. Always scope to the narrowest ARN pattern possible:
-- Use known values from the plan (region, resource names, AMI IDs, etc.)
-- For IDs unknown at plan time, use a wildcard suffix: e.g.
-  `arn:aws:ec2:REGION:ACCOUNT:instance/*`
-- Replace `REGION` and `ACCOUNT` with actual values when known from the plan
-  (e.g. region from provider config, account from existing ARNs in prior_state)
-- Remind the user to replace `<account-id>` placeholders before use
-
-## Examples
-
-- `aws_s3_bucket` → `s3:CreateBucket`, `s3:PutBucketVersioning`
-- `aws_lambda_function` + `aws_iam_role` → `lambda:CreateFunction`, `iam:PassRole`
+1. Human-readable list grouped by resource address with IAM actions
+2. IAM policy JSON with scoped ARNs — see "ARN Scoping" in the reference file.
+   Never use `"Resource": "*"` as a final answer.
