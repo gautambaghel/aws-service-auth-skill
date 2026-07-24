@@ -1,0 +1,31 @@
+id: s3-bucket-001
+name: Basic S3 Bucket Plan
+description: |
+  Verify the skill correctly identifies minimum IAM permissions for a plan
+  that creates an S3 bucket with versioning and server-side encryption.
+  The output must include s3 create/put write actions and a valid IAM policy JSON.
+tags:
+  - happy-path
+  - s3
+  - basic
+inputs:
+  prompt: |
+    Here is my Terraform plan JSON. What are the minimum IAM permissions I need
+    to run terraform apply?
+
+    <plan>
+    FIXTURE:s3_bucket.tfplan.json
+    </plan>
+  files:
+    - path: s3_bucket.tfplan.json
+expected:
+  output_contains:
+    - "s3:CreateBucket"
+    - "Version"
+    - "Statement"
+  output_not_contains:
+    - "s3:ListBuckets"
+    - "s3:GetObject"
+    - "s3:DescribeBucket"
+  outcomes:
+    - type: task_completed

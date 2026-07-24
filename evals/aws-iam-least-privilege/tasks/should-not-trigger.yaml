@@ -1,0 +1,45 @@
+id: no-plan-001
+name: Should Ask For Plan File
+description: |
+  Verify the skill does NOT hallucinate permissions when no plan is provided.
+  When a user asks about Terraform IAM permissions without providing a plan,
+  the skill must ask for the plan file and must NOT output any IAM actions.
+tags:
+  - negative-test
+  - anti-hallucination
+inputs:
+  prompt: |
+    I'm about to run terraform apply on my AWS infrastructure.
+    What IAM permissions do I need?
+graders:
+  - type: text
+    name: valid_iam_action_format
+    config:
+      not_contains:
+        - "s3:Create"
+        - "ec2:Run"
+        - "lambda:Create"
+        - "iam:Create"
+  - type: text
+    name: no_readonly_actions
+    config:
+      not_contains:
+        - "Describe"
+        - "ListBucket"
+        - "GetObject"
+  - type: text
+    name: iam_policy_json_structure
+    config:
+      not_contains:
+        - "\"Effect\": \"Allow\""
+        - "\"Effect\":\"Allow\""
+expected:
+  output_contains:
+    - "plan"
+  output_not_contains:
+    - "s3:CreateBucket"
+    - "ec2:RunInstances"
+    - "lambda:CreateFunction"
+    - "\"Effect\": \"Allow\""
+  outcomes:
+    - type: task_completed

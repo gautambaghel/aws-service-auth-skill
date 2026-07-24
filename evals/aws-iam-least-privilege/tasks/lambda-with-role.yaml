@@ -1,0 +1,36 @@
+id: lambda-role-001
+name: Lambda Function with IAM Role
+description: |
+  Verify the skill identifies permissions for a plan with a Lambda function,
+  IAM execution role, role policy attachment, and CloudWatch log group.
+  Must include lambda:CreateFunction, iam:CreateRole, iam:PassRole, and
+  CloudWatch Logs write permissions.
+tags:
+  - happy-path
+  - lambda
+  - iam
+inputs:
+  prompt: |
+    My Terraform plan creates a Lambda function along with its IAM execution
+    role and a CloudWatch log group. Here's the plan — what's the minimum
+    IAM policy I need to deploy this?
+
+    <plan>
+    FIXTURE:lambda_function.tfplan.json
+    </plan>
+  files:
+    - path: lambda_function.tfplan.json
+expected:
+  output_contains:
+    - "lambda:CreateFunction"
+    - "iam:CreateRole"
+    - "iam:PassRole"
+    - "logs:CreateLogGroup"
+    - "Version"
+    - "Statement"
+  output_not_contains:
+    - "lambda:ListFunctions"
+    - "iam:ListRoles"
+    - "ec2:RunInstances"
+  outcomes:
+    - type: task_completed

@@ -1,0 +1,77 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        { "address": "aws_iam_role.lambda_exec", "type": "aws_iam_role", "name": "lambda_exec", "values": { "name": "lambda-exec-role" } },
+        { "address": "aws_iam_role_policy_attachment.lambda_basic", "type": "aws_iam_role_policy_attachment", "name": "lambda_basic", "values": {} },
+        { "address": "aws_cloudwatch_log_group.lambda_logs", "type": "aws_cloudwatch_log_group", "name": "lambda_logs", "values": { "name": "/aws/lambda/my-function", "retention_in_days": 14 } },
+        { "address": "aws_lambda_function.main", "type": "aws_lambda_function", "name": "main", "values": { "function_name": "my-function", "runtime": "python3.12", "handler": "index.handler" } }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_iam_role.lambda_exec",
+      "type": "aws_iam_role",
+      "name": "lambda_exec",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "lambda-exec-role",
+          "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}]}"
+        }
+      }
+    },
+    {
+      "address": "aws_iam_role_policy_attachment.lambda_basic",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "lambda_basic",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "role": "lambda-exec-role",
+          "policy_arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        }
+      }
+    },
+    {
+      "address": "aws_cloudwatch_log_group.lambda_logs",
+      "type": "aws_cloudwatch_log_group",
+      "name": "lambda_logs",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": { "name": "/aws/lambda/my-function", "retention_in_days": 14 }
+      }
+    },
+    {
+      "address": "aws_lambda_function.main",
+      "type": "aws_lambda_function",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "function_name": "my-function",
+          "role": "will-be-known-after-apply",
+          "runtime": "python3.12",
+          "handler": "index.handler",
+          "filename": "function.zip",
+          "timeout": 30,
+          "memory_size": 128
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "root_module": {}
+  }
+}

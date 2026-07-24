@@ -1,0 +1,83 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_s3_bucket.main",
+          "type": "aws_s3_bucket",
+          "name": "main",
+          "values": {
+            "bucket": "my-app-data-bucket",
+            "tags": { "Environment": "prod" }
+          }
+        },
+        {
+          "address": "aws_s3_bucket_versioning.main",
+          "type": "aws_s3_bucket_versioning",
+          "name": "main",
+          "values": {
+            "bucket": "my-app-data-bucket",
+            "versioning_configuration": [{ "status": "Enabled" }]
+          }
+        },
+        {
+          "address": "aws_s3_bucket_server_side_encryption_configuration.main",
+          "type": "aws_s3_bucket_server_side_encryption_configuration",
+          "name": "main",
+          "values": {
+            "bucket": "my-app-data-bucket"
+          }
+        }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.main",
+      "type": "aws_s3_bucket",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "bucket": "my-app-data-bucket",
+          "tags": { "Environment": "prod" }
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_versioning.main",
+      "type": "aws_s3_bucket_versioning",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "bucket": "my-app-data-bucket",
+          "versioning_configuration": [{ "status": "Enabled" }]
+        }
+      }
+    },
+    {
+      "address": "aws_s3_bucket_server_side_encryption_configuration.main",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "bucket": "my-app-data-bucket",
+          "rule": [{ "apply_server_side_encryption_by_default": [{ "sse_algorithm": "AES256" }] }]
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "root_module": {}
+  }
+}

@@ -1,0 +1,38 @@
+id: multi-service-001
+name: Multi-Service Stack
+description: |
+  Verify the skill handles a plan with multiple AWS services: S3, DynamoDB,
+  SQS, IAM, and Lambda. Output must contain permissions from all five services,
+  include iam:PassRole (Lambda present), have a grouped human-readable list,
+  and produce a single IAM policy JSON document covering all services.
+tags:
+  - happy-path
+  - multi-service
+  - integration
+inputs:
+  prompt: |
+    I'm deploying a full application stack with Terraform. The plan includes
+    an S3 bucket, DynamoDB table, SQS queue, an IAM role, and a Lambda function
+    that reads from SQS. What's the least-privilege IAM policy I need?
+
+    <plan>
+    FIXTURE:multi_service.tfplan.json
+    </plan>
+  files:
+    - path: multi_service.tfplan.json
+expected:
+  output_contains:
+    - "s3:CreateBucket"
+    - "dynamodb:CreateTable"
+    - "sqs:CreateQueue"
+    - "iam:CreateRole"
+    - "lambda:CreateFunction"
+    - "iam:PassRole"
+    - "Version"
+    - "Statement"
+  output_not_contains:
+    - "dynamodb:Scan"
+    - "sqs:ReceiveMessage"
+    - "s3:GetObject"
+  outcomes:
+    - type: task_completed

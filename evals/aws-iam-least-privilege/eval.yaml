@@ -1,0 +1,41 @@
+name: aws-iam-least-privilege-eval
+description: Evaluation suite for the aws-iam-least-privilege skill.
+skill: aws-iam-least-privilege
+schemaVersion: "1.0"
+version: "1.0"
+config:
+  trials_per_task: 1
+  timeout_seconds: 300
+  parallel: false
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+metrics:
+  - name: task_completion
+    weight: 1.0
+    threshold: 0.8
+    description: Did the skill produce a valid IAM permission set?
+graders:
+  - type: text
+    name: valid_iam_action_format
+    config:
+      regex_match:
+        - "(?:[a-z][a-z0-9-]*:[A-Z][A-Za-z]+)"
+  - type: text
+    name: no_readonly_actions
+    config:
+      not_contains:
+        - "Describe"
+        - "ListBucket"
+        - "GetObject"
+        - "HeadObject"
+  - type: text
+    name: iam_policy_json_structure
+    config:
+      regex_match:
+        - "\"Version\""
+        - "\"Statement\""
+        - "\"Effect\""
+        - "\"Action\""
+        - "\"Resource\""
+tasks:
+  - "tasks/*.yaml"

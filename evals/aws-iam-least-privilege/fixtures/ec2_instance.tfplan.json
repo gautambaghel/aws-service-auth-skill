@@ -1,0 +1,84 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.7.0",
+  "planned_values": {
+    "root_module": {
+      "resources": [
+        { "address": "aws_vpc.main", "type": "aws_vpc", "name": "main", "values": { "cidr_block": "10.0.0.0/16" } },
+        { "address": "aws_subnet.public", "type": "aws_subnet", "name": "public", "values": { "cidr_block": "10.0.1.0/24" } },
+        { "address": "aws_internet_gateway.main", "type": "aws_internet_gateway", "name": "main", "values": {} },
+        { "address": "aws_security_group.web", "type": "aws_security_group", "name": "web", "values": { "name": "web-sg" } },
+        { "address": "aws_instance.web", "type": "aws_instance", "name": "web", "values": { "ami": "ami-0c55b159cbfafe1f0", "instance_type": "t3.micro" } }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_vpc.main",
+      "type": "aws_vpc",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": { "cidr_block": "10.0.0.0/16", "enable_dns_hostnames": true }
+      }
+    },
+    {
+      "address": "aws_subnet.public",
+      "type": "aws_subnet",
+      "name": "public",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": { "cidr_block": "10.0.1.0/24", "availability_zone": "us-east-1a" }
+      }
+    },
+    {
+      "address": "aws_internet_gateway.main",
+      "type": "aws_internet_gateway",
+      "name": "main",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": { "vpc_id": "will-be-known-after-apply" }
+      }
+    },
+    {
+      "address": "aws_security_group.web",
+      "type": "aws_security_group",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "web-sg",
+          "description": "Allow HTTP and HTTPS",
+          "ingress": [{ "from_port": 443, "to_port": 443, "protocol": "tcp", "cidr_blocks": ["0.0.0.0/0"] }]
+        }
+      }
+    },
+    {
+      "address": "aws_instance.web",
+      "type": "aws_instance",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "ami": "ami-0c55b159cbfafe1f0",
+          "instance_type": "t3.micro",
+          "subnet_id": "will-be-known-after-apply",
+          "tags": { "Name": "web-server" }
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "root_module": {}
+  }
+}

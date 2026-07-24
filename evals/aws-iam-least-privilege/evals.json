@@ -1,0 +1,74 @@
+{
+  "skill_name": "aws-iam-least-privilege",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here is my Terraform plan JSON. What are the minimum IAM permissions I need to run terraform apply?\n\n<plan>\n(contents of s3_bucket.tfplan.json)\n</plan>",
+      "expected_output": "A grouped human-readable list of s3:CreateBucket, s3:PutBucketVersioning, s3:PutBucketTagging and related S3 write actions, plus a complete IAM policy JSON document. No read-only actions like s3:GetObject or s3:ListBuckets.",
+      "files": ["evals/aws-iam-least-privilege/fixtures/s3_bucket.tfplan.json"],
+      "expectations": [
+        "Output contains s3:CreateBucket",
+        "Output contains a valid IAM policy JSON with Version, Statement, Effect, Action, Resource fields",
+        "Output does NOT contain any Describe*, List*, or Get* read-only actions",
+        "Output groups permissions by AWS service with the resource type noted",
+        "Output includes a note about scoping Resource to specific ARNs in production"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a Terraform plan that deploys a VPC, subnet, security group, and EC2 instance. Here's the plan JSON — what IAM permissions do I need?\n\n<plan>\n(contents of ec2_instance.tfplan.json)\n</plan>",
+      "expected_output": "Permissions covering ec2:RunInstances, ec2:CreateVpc, ec2:CreateSubnet, ec2:CreateInternetGateway, ec2:CreateSecurityGroup and related EC2 write actions. IAM policy JSON included. No read-only ec2:Describe* actions.",
+      "files": ["evals/aws-iam-least-privilege/fixtures/ec2_instance.tfplan.json"],
+      "expectations": [
+        "Output contains ec2:RunInstances",
+        "Output contains ec2:CreateVpc",
+        "Output contains ec2:CreateSecurityGroup",
+        "Output does NOT contain ec2:DescribeInstances or other Describe* actions",
+        "Output contains a valid IAM policy JSON document"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "My Terraform plan creates a Lambda function along with its IAM execution role and a CloudWatch log group. Here's the plan — what's the minimum IAM policy I need to deploy this?\n\n<plan>\n(contents of lambda_function.tfplan.json)\n</plan>",
+      "expected_output": "Permissions for lambda:CreateFunction, iam:CreateRole, iam:AttachRolePolicy, iam:PassRole, logs:CreateLogGroup, logs:PutLogEvents. IAM policy JSON included.",
+      "files": ["evals/aws-iam-least-privilege/fixtures/lambda_function.tfplan.json"],
+      "expectations": [
+        "Output contains lambda:CreateFunction",
+        "Output contains iam:CreateRole",
+        "Output contains iam:PassRole (required for Lambda execution role assignment)",
+        "Output contains logs:CreateLogGroup",
+        "Output does NOT contain lambda:ListFunctions or iam:ListRoles",
+        "Output contains a valid IAM policy JSON document"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'm deploying a full application stack with Terraform. The plan includes an S3 bucket, DynamoDB table, SQS queue, an IAM role, and a Lambda function that reads from SQS. What's the least-privilege IAM policy I need?\n\n<plan>\n(contents of multi_service.tfplan.json)\n</plan>",
+      "expected_output": "Permissions covering all five services: S3, DynamoDB, SQS, IAM, and Lambda. Output is grouped by service. Includes iam:PassRole. Single IAM policy JSON document with all actions combined.",
+      "files": ["evals/aws-iam-least-privilege/fixtures/multi_service.tfplan.json"],
+      "expectations": [
+        "Output contains s3:CreateBucket",
+        "Output contains dynamodb:CreateTable",
+        "Output contains sqs:CreateQueue",
+        "Output contains lambda:CreateFunction",
+        "Output contains iam:CreateRole",
+        "Output contains iam:PassRole",
+        "Output groups permissions by service with resource type labels",
+        "Output contains a single IAM policy JSON document covering all services",
+        "Output does NOT contain any read-only actions (Describe*, List*, Get*, Scan)"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm about to run terraform apply on my AWS infrastructure. What IAM permissions do I need?",
+      "expected_output": "The skill asks the user to provide a Terraform plan file (terraform show -json output) before it can determine permissions. It does NOT output any IAM actions or a policy document.",
+      "files": [],
+      "expectations": [
+        "Output asks for or mentions a Terraform plan file",
+        "Output mentions terraform show -json or similar instruction",
+        "Output does NOT contain any IAM action strings like s3:CreateBucket or ec2:RunInstances",
+        "Output does NOT contain an IAM policy JSON document (no 'Effect': 'Allow')"
+      ]
+    }
+  ]
+}
