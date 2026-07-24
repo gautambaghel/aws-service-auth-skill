@@ -27,6 +27,10 @@ Do not proceed without the plan JSON.
 From `resource_changes[]`, collect unique `type` where `change.actions`
 contains `"create"` or `"update"`. Skip `"delete"`, `"no-op"`.
 
+**IMPORTANT**: Always use `resource_changes[]` as the authoritative list — never
+rely on `planned_values` which may omit resources. List every distinct `address`
+before proceeding to ensure nothing is missed.
+
 ## Step 3 — Map to AWS services
 
 Use the mapping table in the reference file. Unlisted: derive from `aws_{service}_*`.
@@ -47,8 +51,19 @@ Apply always-include rules from reference file.
 
 ## Step 6 — Output
 
-Grouped human-readable list (by service + resource type) and IAM policy JSON.
-Note to scope `Resource` to ARNs in prod.
+Always produce **both**:
+
+1. A human-readable table grouped by resource address showing which IAM actions apply to each resource
+2. A consolidated IAM policy JSON with scoped ARNs
+
+**Resource ARN scoping (REQUIRED)**: Never use `"Resource": "*"` as a final
+answer. Always scope to the narrowest ARN pattern possible:
+- Use known values from the plan (region, resource names, AMI IDs, etc.)
+- For IDs unknown at plan time, use a wildcard suffix: e.g.
+  `arn:aws:ec2:REGION:ACCOUNT:instance/*`
+- Replace `REGION` and `ACCOUNT` with actual values when known from the plan
+  (e.g. region from provider config, account from existing ARNs in prior_state)
+- Remind the user to replace `<account-id>` placeholders before use
 
 ## Examples
 
