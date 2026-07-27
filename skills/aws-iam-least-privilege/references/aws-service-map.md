@@ -1,31 +1,3 @@
-# ARN Scoping Rules (Step 6)
-
-Never use `"Resource": "*"` as a final answer. Scope to the narrowest ARN pattern:
-
-- Use known values from the plan (bucket names, role names, AMI IDs, etc.)
-- For IDs unknown at plan time, use a wildcard suffix:
-  `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*`
-- Replace `REGION` / `ACCOUNT_ID` with actual values when known from the plan
-  (region from provider config, account from existing ARNs in `prior_state`)
-- Remind the user to replace `<account-id>` placeholders before use
-
-Common patterns:
-
-| Service | ARN pattern |
-|---|---|
-| S3 bucket | `arn:aws:s3:::BUCKET_NAME` |
-| S3 objects | `arn:aws:s3:::BUCKET_NAME/*` |
-| IAM role | `arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME` |
-| Lambda | `arn:aws:lambda:REGION:ACCOUNT_ID:function:FUNCTION_NAME` |
-| DynamoDB | `arn:aws:dynamodb:REGION:ACCOUNT_ID:table/TABLE_NAME` |
-| SQS | `arn:aws:sqs:REGION:ACCOUNT_ID:QUEUE_NAME` |
-| EC2 instance | `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*` |
-| EC2 VPC | `arn:aws:ec2:REGION:ACCOUNT_ID:vpc/*` |
-| EC2 security group | `arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*` |
-| Log group | `arn:aws:logs:REGION:ACCOUNT_ID:log-group:LOG_GROUP_NAME:*` |
-
----
-
 # Plan Acquisition (Step 1)
 
 ## Path A — Local Terraform
@@ -49,30 +21,25 @@ workspace name and org and I'll pull the plan. Otherwise paste your
 
 ---
 
-# Create/Deploy Verb List (Step 5)
+# tfctl Commands for Fetching Plan JSON (Step 1B)
 
-Include an action whose name starts with any of:
-`Create`, `Put`, `Run`, `Launch`, `Start`, `Register`, `Publish`, `Upload`,
-`Add`, `Attach`, `Associate`, `Allocate`, `Enable`, `Set`, `Tag`, `Update`,
-`Import`, `Activate`, `Deploy`, `Build`, `Provision`
+```bash
+# Get the current run ID for a workspace
+tfctl api /organizations/{organization}/workspaces/WORKSPACE_NAME \
+  --jq '.data.relationships.["current-run"].data.id'
 
----
+# Fetch plan JSON by run ID (follows 307 redirect automatically)
+tfctl api /runs/RUN_ID/plan/json-output --json
 
-# Service Reference API (Step 4)
-
-Index: `https://servicereference.us-east-1.amazonaws.com`
-Returns `[{ "service": "...", "url": "..." }]` — use the `url` field.
-
-Per-service JSON: `https://servicereference.us-east-1.amazonaws.com/v1/{service}/{service}.json`
-
-Each action entry:
-```json
-{ "Name": "CreateBucket", "Annotations": { "Properties": { "IsWrite": true } } }
+# Or fetch by plan ID directly
+tfctl api /plans/PLAN_ID/json-output --json
 ```
 
+A `204` response means the plan hasn't finished yet — wait and retry.
+
 ---
 
-# AWS Resource Type → Service Mapping
+# AWS Resource Type → Service Mapping (Step 3)
 
 Use this table in Step 3 to map Terraform resource types to AWS service
 identifiers. For any `aws_*` type not listed, derive the service from the
@@ -111,24 +78,26 @@ resource type prefix: `aws_{service}_*`.
 
 ---
 
-# Pre-computed Common Actions (skip Step 4 fetch for these)
+# Service Reference API (Step 4)
 
-For these resource types, use the actions below directly — do NOT fetch the
-service reference JSON. Always prefix with `ec2:`.
+Index: `https://servicereference.us-east-1.amazonaws.com`
+Returns `[{ "service": "...", "url": "..." }]` — use the `url` field.
 
-| Resource type | Minimum write actions |
-|---|---|
-| `aws_vpc` | `ec2:CreateVpc`, `ec2:ModifyVpcAttribute`, `ec2:CreateTags` |
-| `aws_subnet` | `ec2:CreateSubnet`, `ec2:ModifySubnetAttribute`, `ec2:CreateTags` |
-| `aws_internet_gateway` | `ec2:CreateInternetGateway`, `ec2:AttachInternetGateway`, `ec2:CreateTags` |
-| `aws_route_table` | `ec2:CreateRouteTable`, `ec2:CreateRoute`, `ec2:AssociateRouteTable`, `ec2:CreateTags` |
-| `aws_security_group` | `ec2:CreateSecurityGroup`, `ec2:AuthorizeSecurityGroupIngress`, `ec2:AuthorizeSecurityGroupEgress`, `ec2:CreateTags` |
-| `aws_instance` | `ec2:RunInstances`, `ec2:CreateTags` |
-| `aws_eip` | `ec2:AllocateAddress`, `ec2:AssociateAddress`, `ec2:CreateTags` |
-| `aws_nat_gateway` | `ec2:CreateNatGateway`, `ec2:CreateTags` |
-| `aws_key_pair` | `ec2:ImportKeyPair`, `ec2:CreateTags` |
-| `aws_launch_template` | `ec2:CreateLaunchTemplate`, `ec2:CreateTags` |
-| `aws_network_interface` | `ec2:CreateNetworkInterface`, `ec2:AttachNetworkInterface`, `ec2:CreateTags` |
+Per-service JSON: `https://servicereference.us-east-1.amazonaws.com/v1/{service}/{service}.json`
+
+Each action entry:
+```json
+{ "Name": "CreateBucket", "Annotations": { "Properties": { "IsWrite": true } } }
+```
+
+---
+
+# Create/Deploy Verb List (Step 5)
+
+Include an action whose name starts with any of:
+`Create`, `Put`, `Run`, `Launch`, `Start`, `Register`, `Publish`, `Upload`,
+`Add`, `Attach`, `Associate`, `Allocate`, `Enable`, `Set`, `Tag`, `Update`,
+`Import`, `Activate`, `Deploy`, `Build`, `Provision`
 
 ---
 
@@ -146,21 +115,31 @@ appear in the plan:
 
 ---
 
-# tfctl Commands for Fetching Plan JSON (Step 1B)
+# ARN Scoping Rules (Step 6)
 
-```bash
-# Get the current run ID for a workspace
-tfctl api /organizations/{organization}/workspaces/WORKSPACE_NAME \
-  --jq '.data.relationships.["current-run"].data.id'
+Never use `"Resource": "*"` as a final answer. Scope to the narrowest ARN pattern:
 
-# Fetch plan JSON by run ID (follows 307 redirect automatically)
-tfctl api /runs/RUN_ID/plan/json-output --json
+- Use known values from the plan (bucket names, role names, AMI IDs, etc.)
+- For IDs unknown at plan time, use a wildcard suffix:
+  `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*`
+- Replace `REGION` / `ACCOUNT_ID` with actual values when known from the plan
+  (region from provider config, account from existing ARNs in `prior_state`)
+- Remind the user to replace `<account-id>` placeholders before use
 
-# Or fetch by plan ID directly
-tfctl api /plans/PLAN_ID/json-output --json
-```
+Common patterns:
 
-A `204` response means the plan hasn't finished yet — wait and retry.
+| Service | ARN pattern |
+|---|---|
+| S3 bucket | `arn:aws:s3:::BUCKET_NAME` |
+| S3 objects | `arn:aws:s3:::BUCKET_NAME/*` |
+| IAM role | `arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME` |
+| Lambda | `arn:aws:lambda:REGION:ACCOUNT_ID:function:FUNCTION_NAME` |
+| DynamoDB | `arn:aws:dynamodb:REGION:ACCOUNT_ID:table/TABLE_NAME` |
+| SQS | `arn:aws:sqs:REGION:ACCOUNT_ID:QUEUE_NAME` |
+| EC2 instance | `arn:aws:ec2:REGION:ACCOUNT_ID:instance/*` |
+| EC2 VPC | `arn:aws:ec2:REGION:ACCOUNT_ID:vpc/*` |
+| EC2 security group | `arn:aws:ec2:REGION:ACCOUNT_ID:security-group/*` |
+| Log group | `arn:aws:logs:REGION:ACCOUNT_ID:log-group:LOG_GROUP_NAME:*` |
 
 ---
 
